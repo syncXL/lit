@@ -2,6 +2,8 @@ import os
 from functools import partial
 from math import floor
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import datasets
 import fire
@@ -10,6 +12,7 @@ import pyarrow as pa
 import pyarrow.dataset as pa_ds
 import ray
 from datasets import Value
+
 from audio_tools import AudioTableProcessor, map_to_target_schema
 from datasets import load_dataset
 from text_tools import normalize_text_mozilla
