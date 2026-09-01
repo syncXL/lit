@@ -54,3 +54,7 @@ class PullCli:
         self.pull_tokenizers(file_repo_id, artifacts_dir, revision)
         self.pull_models(file_repo_id, artifacts_dir, revision)
         print("All Pulls Successful")
+
+if __name__ == "__main__":
+    # Initialize Ray if not already initialized
+    fire.Fire(PullCli)

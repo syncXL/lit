@@ -59,4 +59,8 @@ class CommitCli:
         self.push_tokenizers(file_repo_id, tkn_dir)
         self.push_models(file_repo_id, model_dir)
         print("All Uploads Successful")
-    
+
+
+if __name__ == "__main__":
+    # Initialize Ray if not already initialized
+    fire.Fire(CommitCli)
