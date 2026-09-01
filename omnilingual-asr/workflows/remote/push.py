@@ -30,7 +30,7 @@ class CommitCli:
         api.upload_folder(repo_id=ds_repo_id, repo_type="dataset", folder_path=str(ds_dir))
         print("Upload Dataset Successful")
 
-    def push_tokenizers(self, repo_id: str | None, tkn_dir: str | None = None):
+    def push_tokenizers(self, repo_id: str | None = None, tkn_dir: str | None = None):
         repo_id = repo_id or f"{self.HF_REPO_ID}/{self.MAIN_REPO}"
         tkn_dir = Path(tkn_dir) if tkn_dir else Path(self.DIR) / "files/tokenizers"
         if not tkn_dir.exists():
@@ -41,7 +41,7 @@ class CommitCli:
         api.upload_folder(repo_id=repo_id, repo_type="model", folder_path=str(tkn_dir), path_in_repo="tokenizers/")
         print("Upload Tokenizers Successfull")
     
-    def push_models(self, repo_id: str | None, model_dir: str | None = None):
+    def push_models(self, repo_id: str | None = None, model_dir: str | None = None):
         repo_id = repo_id or f"{self.HF_REPO_ID}/{self.MAIN_REPO}"
         model_dir = Path(model_dir) if model_dir else Path(self.DIR) / f"files/models"
 
