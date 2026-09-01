@@ -55,8 +55,6 @@ class FleursTextProcessor:
         batch = batch.drop(["transcription"]).append_column(
             "transcription", pa.array(processed_transcriptions, type=pa.string())
         )
-        columns = ["pair_id","filename", "speaker", "lid_tokens", "lang_1", "lang_2", "duration_sec", "orthography_variant", "channel_decision", "possible_overlap", "convo_id" ]
-        batch = batch.drop(columns)
         if "language" in batch.column_names:
             batch = batch.drop(["language"])
 
@@ -91,8 +89,6 @@ class MozillaTextProcessor:
             "transcription", pa.array(processed_transcriptions, type=pa.string())
         )
 
-        # batch = batch.drop()
-        # batch = batch.drop(["lang_1", "lang_2", "pair_id"])
 
         language_values = [self.lang_mapping.get(self.lang, self.lang)] * len(batch)
         batch = batch.append_column(
@@ -265,7 +261,7 @@ class DataPrepCLI:
                 mozilla_hf = mozilla_hf.shuffle(seed=123, buffer_size=10_000)
                 mozilla_hf = mozilla_hf.cast_column("speaker", Value("string"))
                 mozilla_hf = mozilla_hf.cast_column("audio", Audio(decode=False)) 
-                columns = ["source_dataset","filename", "speaker", "lid_tokens", "lang_1", "lang_2", "duration_sec", "orthography_variant", "channel_decision", "possible_overlap","convo_id"]
+                columns = ["pair_id","filename", "speaker", "lid_tokens", "lang_1", "lang_2", "duration_sec", "orthography_variant", "channel_decision", "possible_overlap", "convo_id" ]
                 mozilla_hf = mozilla_hf.remove_columns(columns)
                 ray_ds_stream_ = ray.data.from_huggingface(mozilla_hf)
 
