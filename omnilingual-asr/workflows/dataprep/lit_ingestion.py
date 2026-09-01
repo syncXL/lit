@@ -56,7 +56,8 @@ class FleursTextProcessor:
         batch = batch.drop(["transcription"]).append_column(
             "transcription", pa.array(processed_transcriptions, type=pa.string())
         )
-
+        columns = ["pair_id","filename", "speaker", "lid_tokens", "lang_1", "lang_2", "duration_sec", "orthography_variant", "channel_decision", "possible_overlap", "convo_id" ]
+        batch = batch.drop(columns)
         if "language" in batch.column_names:
             batch = batch.drop(["language"])
 
