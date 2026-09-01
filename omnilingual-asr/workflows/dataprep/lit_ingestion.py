@@ -11,10 +11,9 @@ import polars as pl
 import pyarrow as pa
 import pyarrow.dataset as pa_ds
 import ray
-from datasets import Audio, Value
 
 from audio_tools import AudioTableProcessor, map_to_target_schema
-from datasets import load_dataset
+from datasets import load_dataset, Audio, Value
 from text_tools import normalize_text_mozilla
 
 
@@ -207,8 +206,7 @@ class DataPrepCLI:
                     trust_remote_code=True,
                 )
                 fleurs_hf = fleurs_hf.shuffle(seed=123, buffer_size=10000)
-                mozilla_hf = mozilla_hf.cast_column("speaker", Value("string"))
-                mozilla_hf = mozilla_hf.cast_column("audio", Audio(decode=False)) 
+                fleurs_hf = fleurs_hf.cast_column("audio", Audio(decode=False)) 
                 ray_ds_stream_ = ray.data.from_huggingface(fleurs_hf)
                 
                 # Use batch-level text processing
