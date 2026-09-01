@@ -11,7 +11,7 @@ import polars as pl
 import pyarrow as pa
 import pyarrow.dataset as pa_ds
 import ray
-from datasets import Value
+from datasets import Audio, Value
 
 from audio_tools import AudioTableProcessor, map_to_target_schema
 from datasets import load_dataset
@@ -92,7 +92,7 @@ class MozillaTextProcessor:
             "transcription", pa.array(processed_transcriptions, type=pa.string())
         )
 
-        batch = batch.drop(["source_dataset","filename", "speaker", "lid_tokens", "lang_1", "lang_2", "duration_sec", "orthography_variant", "channel_decision", "possible_overlap","convo_id"])
+        # batch = batch.drop()
         # batch = batch.drop(["lang_1", "lang_2", "pair_id"])
 
         language_values = [self.lang_mapping.get(self.lang, self.lang)] * len(batch)
@@ -207,6 +207,8 @@ class DataPrepCLI:
                     trust_remote_code=True,
                 )
                 fleurs_hf = fleurs_hf.shuffle(seed=123, buffer_size=10000)
+                mozilla_hf = mozilla_hf.cast_column("speaker", Value("string"))
+                mozilla_hf = mozilla_hf.cast_column("audio", Audio(decode=False)) 
                 ray_ds_stream_ = ray.data.from_huggingface(fleurs_hf)
                 
                 # Use batch-level text processing
@@ -264,6 +266,9 @@ class DataPrepCLI:
                 )
                 mozilla_hf = mozilla_hf.shuffle(seed=123, buffer_size=10_000)
                 mozilla_hf = mozilla_hf.cast_column("speaker", Value("string"))
+                mozilla_hf = mozilla_hf.cast_column("audio", Audio(decode=False)) 
+                columns = ["source_dataset","filename", "speaker", "lid_tokens", "lang_1", "lang_2", "duration_sec", "orthography_variant", "channel_decision", "possible_overlap","convo_id"]
+                mozilla_hf = mozilla_hf.remove_columns(columns)
                 ray_ds_stream_ = ray.data.from_huggingface(mozilla_hf)
 
                 num_cpus = max(floor((os.cpu_count() or 1) / 4), 1)
