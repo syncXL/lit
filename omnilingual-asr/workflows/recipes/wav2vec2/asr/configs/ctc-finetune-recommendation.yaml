@@ -8,7 +8,7 @@ model:
   name: "omniASR_CTC_300M_v2" # omniASR_CTC_1B, omniASR_CTC_3B
 
 dataset:
-  name: "example_dataset"
+  name: "indonesian-javanese-set"
   train_split: "train"
   valid_split: "dev"
   storage_mode: "MIXTURE_PARQUET"
