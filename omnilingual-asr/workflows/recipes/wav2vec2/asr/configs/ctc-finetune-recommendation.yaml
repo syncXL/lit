@@ -38,7 +38,7 @@ trainer:
   mixed_precision:
     dtype: "torch.bfloat16"
   grad_accumulation:
-    num_batches: 4 # tune this parameter if you are getting OOM
+    num_batches: 16 # tune this parameter if you are getting OOM
 
 regime:
   num_steps: 5_000
