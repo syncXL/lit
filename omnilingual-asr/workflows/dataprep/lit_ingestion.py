@@ -148,7 +148,7 @@ class DataPrepCLI:
                 # Use batch-level text processing
                 num_cpus = max(floor((os.cpu_count() or 1) / 4), 1)
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
-                    MLSTextProcessor,
+                    FleursTextProcessor,
                     fn_constructor_kwargs={"lang": lang},
                     batch_size=100,
                     batch_format="pyarrow",

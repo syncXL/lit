@@ -6,6 +6,7 @@
 
 from fairseq2.models.wav2vec2.asr.config import Wav2Vec2AsrConfig
 from fairseq2.models.wav2vec2.config import Wav2Vec2Config
+from fairseq2.nn.projection import Linear
 from fairseq2.runtime.config_registry import ConfigRegistrar, get_config
 from fairseq2.runtime.dependency import DependencyContainer, DependencyResolver
 
