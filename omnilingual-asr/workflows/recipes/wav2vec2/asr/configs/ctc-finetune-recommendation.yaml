@@ -42,9 +42,9 @@ trainer:
 
 regime:
   num_steps: 5_000
-  validate_every_n_steps: 100
-  validate_after_n_steps: 100
-  checkpoint_every_n_steps: 500
-  checkpoint_after_n_steps: 500
+  validate_every_n_steps: 1000
+  validate_after_n_steps: 1000
+  checkpoint_every_n_steps: 1000
+  checkpoint_after_n_steps: 1000
   publish_metrics_every_n_steps: 1000
   publish_metrics_after_n_steps: 1000
