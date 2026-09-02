@@ -41,7 +41,7 @@ trainer:
     num_batches: 16 # tune this parameter if you are getting OOM
 
 regime:
-  num_steps: 5_000
+  num_steps: 10_000
   validate_every_n_steps: 1000
   validate_after_n_steps: 1000
   checkpoint_every_n_steps: 1000
