@@ -48,6 +48,6 @@ regime:
   checkpoint_after_n_steps: 5
   publish_metrics_every_n_steps: 5
   publish_metrics_after_n_steps: 5
-  export_hugging_face: True
+  # export_hugging_face: True
   keep_last_n_checkpoints: 5
   keep_best_n_checkpoints: 1
