@@ -41,15 +41,15 @@ trainer:
     num_batches: 16 # tune this parameter if you are getting OOM
 
 regime:
-  num_steps: 1000
-  validate_every_n_steps: 100
-  validate_after_n_steps: 100
-  checkpoint_every_n_steps: 100
-  checkpoint_after_n_steps: 100
-  publish_metrics_every_n_steps: 100
-  publish_metrics_after_n_steps: 100
+  num_steps: 5000
+  validate_every_n_steps: 500
+  validate_after_n_steps: 500
+  checkpoint_every_n_steps: 500
+  checkpoint_after_n_steps: 500
+  publish_metrics_every_n_steps: 500
+  publish_metrics_after_n_steps: 500
   # export_hugging_face: True
-  keep_last_n_checkpoints: 5
+  keep_last_n_checkpoints: 3
   keep_best_n_checkpoints: 1
 common:
   sweep_format: "lit-ctc300m-ind-jav"
