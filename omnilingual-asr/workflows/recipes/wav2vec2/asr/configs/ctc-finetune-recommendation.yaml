@@ -39,7 +39,8 @@ trainer:
     dtype: "torch.bfloat16"
   grad_accumulation:
     num_batches: 16 # tune this parameter if you are getting OOM
-
+assets:
+    prev_checkpoint_dir: "/kaggle/workinig/lit-ctc300m-ind-jav/checkpoints"
 regime:
   num_steps: 1000
   validate_every_n_steps: 100
