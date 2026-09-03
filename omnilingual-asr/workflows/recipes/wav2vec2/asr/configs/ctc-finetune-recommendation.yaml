@@ -39,7 +39,6 @@ trainer:
     dtype: "torch.bfloat16"
   grad_accumulation:
     num_batches: 16 # tune this parameter if you are getting OOM
-
 regime:
   num_steps: 5000
   validate_every_n_steps: 500
