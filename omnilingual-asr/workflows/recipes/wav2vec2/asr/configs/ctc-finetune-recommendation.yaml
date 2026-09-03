@@ -52,4 +52,4 @@ regime:
   keep_last_n_checkpoints: 5
   keep_best_n_checkpoints: 1
 common:
-  sweep_format: "lit-ctc300m-run"
+  sweep_format: "lit-ctc300m-ind-jav"
