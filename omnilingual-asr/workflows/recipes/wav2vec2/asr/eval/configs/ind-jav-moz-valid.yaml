@@ -19,7 +19,7 @@ dataset:
     beta_corpus: 0.5
     beta_language: 0.5
     fragment_streaming:
-      partition_filters: 'pc.is_in(pc.field("corpus"), pa.array(["mls"]))'
+      partition_filters: 'pc.is_in(pc.field("corpus"), pa.array(["mozilla"]))'
     fragment_loading:
       cache: True
       num_parallel_fragments: 2
