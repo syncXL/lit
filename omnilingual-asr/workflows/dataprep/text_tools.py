@@ -164,3 +164,13 @@ def normalize_text_mozilla(text, is_lower=True):
         text = text.replace(" ... ", " ")
     text = re.sub(MULTISPACE, " ", text)
     return text
+
+
+def normalize_nahuatl_word(word):
+    # word = word.lower()
+    word = word.replace("hu", "u")
+    word = re.sub(r"qu(?=[ei])", "k", word)
+    word = re.sub(r"c(?=[ei])", "s", word)
+    word = word.replace("c", "k")
+    word = word.replace("z", "s")
+    return word

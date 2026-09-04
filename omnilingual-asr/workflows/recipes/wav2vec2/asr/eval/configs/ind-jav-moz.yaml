@@ -5,17 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 
 model:
-  name: "omniASR_LLM_300M_v2" # replace with [omniASR_CTC_1B, omniASR_CTC_3B,  omniASR_CTC_7B] or the LLM variants
+  name: "lit-ctc300m-ind-jav" # replace with [omniASR_CTC_1B, omniASR_CTC_3B,  omniASR_CTC_7B] or the LLM variants
 tokenizer:
   name: "omniASR_tokenizer_written_v2" # replace with "omniASR_tokenizer_written_v2" if using v2 models
 
 dataset:
-  name: "example_dataset"
+  name: "indonesian-javanese-set"
   valid_split: "dev"
   storage_mode: "MIXTURE_PARQUET"
   task_mode: "ASR"
   mixture_parquet_storage_config:
-    dataset_summary_path: "/path/to/your/dataset/language_distribution_0.tsv"
+    dataset_summary_path: "/kaggle/working/data/all_asr/language_distribution_0.tsv"
     beta_corpus: 0.5
     beta_language: 0.5
     fragment_streaming:
@@ -26,8 +26,8 @@ dataset:
       nb_prefetch: 2
   asr_task_config:
      min_audio_len: 32_000
-     max_audio_len: 320_000
-     max_num_elements: 320_000
+     max_audio_len: 640_000
+     max_num_elements: 640_000
      batch_shuffle_window: 1
      normalize_audio: true
      example_shuffle_window: 1

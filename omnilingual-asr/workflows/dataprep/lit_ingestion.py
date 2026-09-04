@@ -14,7 +14,7 @@ import ray
 
 from audio_tools import AudioTableProcessor, map_to_target_schema
 from datasets import load_dataset, Audio, Value
-from text_tools import normalize_text_mozilla
+from text_tools import normalize_text_mozilla, normalize_nahuatl_word
 
 
 class FleursTextProcessor:
@@ -25,7 +25,7 @@ class FleursTextProcessor:
     for batches of FLEURS data.
     """
 
-    def __init__(self, lang: str):
+    def __init__(self, lang: str, is_lower: bool = True):
         """
         Initialize the processor for a specific language.
 
@@ -40,6 +40,7 @@ class FleursTextProcessor:
             "fr_fr": "fra_Latn",
             "uk_ua": "ukr_Cyrl",
         }
+        self.is_lower = is_lower
 
     def __call__(self, batch: pa.Table) -> pa.Table:
         # Extract transcription column as Python list
@@ -48,7 +49,7 @@ class FleursTextProcessor:
 
         for text in transcriptions:
             # Normalize text
-            processed_text = normalize_text_mozilla(text, is_lower=False)
+            processed_text = normalize_text_mozilla(text, is_lower=is_lower)
             processed_transcriptions.append(processed_text)
 
         # Drop original transcription column and add the processed one
@@ -70,19 +71,19 @@ class MozillaTextProcessor:
     Batch-level processor for Mozilla Text data processing
     """
 
-    def __init__(self, lang: str):
+    def __init__(self, lang: str, is_lower: bool = False):
         self.lang = lang
         self.lang_mapping = {
             "ind-jav" : "ind_jav"
         }
-
+        self.is_lower = is_lower
     
-    def __call__(self, batch: pa.Table) -> pa.Table:
+    def __call__(self, batch: pa.Table, ) -> pa.Table:
         transcription = batch["transcript"].to_pylist()
         processed_transcriptions = []
 
         for text in transcription:
-            processed_text = normalize_text_mozilla(text, is_lower=False)
+            processed_text = normalize_text_mozilla(text, is_lower=self.is_lower)
             processed_transcriptions.append(processed_text)
         
         batch = batch.drop(["transcript"]).append_column(
@@ -96,11 +97,48 @@ class MozillaTextProcessor:
         )
         return batch
 
+
+class OmniTextProcessor:
+    """
+    Batch-level processor for Mozilla Text data processing
+    """
+
+    def __init__(self, lang: str, is_lower: bool = False):
+        self.lang = lang
+        self.lang_mapping = {
+            "nhg_Latn" : "nhg_Latn",
+            "nhn_Latn" : "nhn_Latn",
+            "nhq_latn" : "nhq_latn"
+        }
+        self.is_lower = is_lower
+    
+    def __call__(self, batch: pa.Table, ) -> pa.Table:
+        transcription = batch["transcript"].to_pylist()
+        processed_transcriptions = []
+
+        for text in transcription:
+            if self.lang in ["nhg_Latn", "nhn_Latn", "nhq_Latn"]:
+                processed_text = normalize_nahuatl_word(text)
+            processed_text = normalize_text_mozilla(text, is_lower=self.is_lower)
+            processed_transcriptions.append(processed_text)
+        
+        batch = batch.drop(["text"]).append_column(
+            "transcription", pa.array(processed_transcriptions, type=pa.string())
+        )
+
+
+        language_values = [self.lang_mapping.get(self.lang, self.lang)] * len(batch)
+        batch = batch.append_column(
+            "language", pa.array(language_values, type=pa.string())
+        )
+        return batch
+
 class DataPrepCLI:
     """Command-line interface for ASR data preparation tasks."""
 
-    FLEURS_LAG_SUBSET = ["id_id", "jv_id"]
-    MOZILLA_LAG_SUBSET = ["ind-jav"]
+    FLEURS_LAG_SUBSET = ["id_id", "jv_id", "es-419"]
+    MOZILLA_LAG_SUBSET = ["ind-jav", "spa-nhi","ncx_Latn", "nhi_Latn", "nlv_Latn"]
+    OMNI_LANG_SUBSET = ["nhg_Latn", "nhn_Latn", "nhq_latn"]
 
     # Short subset for quick testing (only 2 languages from FLEURS)
     FLEURS_SHORT_SUBSET = ["id_id", "jv_id"]
@@ -179,7 +217,7 @@ class DataPrepCLI:
                 )
 
     def _ingest_fleurs_internal(
-        self, output_dir: str, lang_subset: list[str] | None = None
+        self, output_dir: str, lang_subset: list[str] | None = None, is_lower: bool = True
     ):
         """Internal method for FLEURS ingestion."""
         # see https://huggingface.co/datasets/google/fleurs
@@ -190,7 +228,7 @@ class DataPrepCLI:
             lang_subset if lang_subset is not None else self.FLEURS_LAG_SUBSET
         )
 
-        split_renaming = {"validation": "dev_fleurs", "test" : "test_fleurs"}
+        split_renaming = {"validation": "train", "test" : "train"}
 
         for lang in langs_to_process:
             for split in ["test", "validation", "train"]:
@@ -209,7 +247,7 @@ class DataPrepCLI:
                 num_cpus = max(floor((os.cpu_count() or 1) / 4), 1)
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
                     FleursTextProcessor,
-                    fn_constructor_kwargs={"lang": lang},
+                    fn_constructor_kwargs={"lang": lang, "is_lower" : is_lower},
                     batch_size=1000,
                     batch_format="pyarrow",
                     concurrency=num_cpus,
@@ -242,7 +280,7 @@ class DataPrepCLI:
                     row_group_size=100,  # https://github.com/ray-project/ray/issues/52481
                 )
 
-    def _ingest_custom_corpus_internal(self, output_dir: str, lang_subset: list[str] | None = None
+    def _ingest_mozilla_internal(self, output_dir: str, lang_subset: list[str] | None = None, is_lower: bool = True
     ) :
         langs_to_process = (
             lang_subset if lang_subset is not None else self.MOZILLA_LAG_SUBSET
@@ -251,13 +289,17 @@ class DataPrepCLI:
         split_renaming = {"val" : "train", "test" : "validation"}
         for lang in langs_to_process:
             for split in ["test", "dev", "val", "train"]:
-                mozilla_hf = load_dataset(
-                    "nolimitsxl/lost-in-transcription",
-                    lang,
-                    split=split,
-                    streaming=True,
-                    data_files= {split : f"{lang}/{split}-*.parquet"}
-                )
+                try:
+                    mozilla_hf = load_dataset(
+                        "nolimitsxl/lost-in-transcription",
+                        lang,
+                        split=split,
+                        streaming=True,
+                        data_files={split: f"{lang}/{split}-*.parquet"}
+                    )
+                except (FileNotFoundError, ValueError) as e:
+                    print(f"skipping {lang}/{split}: {e}")
+                    continue
                 mozilla_hf = mozilla_hf.shuffle(seed=123, buffer_size=10_000)
                 mozilla_hf = mozilla_hf.cast_column("speaker", Value("string"))
                 mozilla_hf = mozilla_hf.cast_column("audio", Audio(decode=False)) 
@@ -268,7 +310,7 @@ class DataPrepCLI:
                 num_cpus = max(floor((os.cpu_count() or 1) / 4), 1)
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
                     MozillaTextProcessor,
-                    fn_constructor_kwargs={"lang" : lang},
+                    fn_constructor_kwargs={"lang" : lang, "is_lower" : is_lower},
                     batch_size=1000,
                     batch_format="pyarrow",
                     concurrency=num_cpus
@@ -301,6 +343,62 @@ class DataPrepCLI:
                     row_group_size=100,
                 )
 
+    def _ingest_omnilang_internal(self, output_dir: str, lang_subset: list[str] | None = None, is_lower: bool = True):
+        langs_to_process = (
+            lang_subset if lang_subset is not None else self.OMNI_LANG_SUBSET
+        )
+        split_renaming = {"dev" : "train", "test" : "train"}
+        for lang in langs_to_process:
+            for split in ["test", "dev", "train" ]:
+                omnilang_hf = load_dataset(
+                    "nolimitsxl/omnilingual-asr-nahuatl-prepared",
+                    lang,
+                    split=split,
+                    streaming=True,
+                    data_files={split : f"{lang/split}-*.parquet"}
+                )
+                omnilang_hf = omnilang_hf.shuffle(seed=123, buffer_size=10_000)
+                omnilang_hf = omnilang_hf.cast_column("speaker_id", Value("string"))
+                omnilang_hf = omnilang_hf.rename_column("speaker_id", "speaker")
+                omnilang_hf = omnilang_hf.cast_column("audio", Audio(decode=False)) 
+
+                ray_ds_stream_ = ray.data.from_huggingface(omnilang_hf)
+                num_cpus = max(floor((os.cpu_count() or 1) / 4), 1)
+
+                ray_ds_stream_ = ray_ds_stream_.map_batches(
+                    OmniTextProcessor,
+                    fn_constructor_kwargs={"lang" : lang, "is_lower" : is_lower},
+                    batch_size=1000,
+                    batch_format="pyarrow",
+                    concurrency=num_cpus
+                )
+
+                ray_ds_stream_ = ray_ds_stream_.map_batches(
+                    AudioTableProcessor,
+                    fn_constructor_kwargs={
+                        "audio_column" : "audio.bytes",
+                        "audio_format" : "flac",
+                    },
+                    batch_size=100,
+                    batch_format="pyarrow",
+                    concurrency=num_cpus
+                )
+
+                ray_ds_stream_ = ray_ds_stream_.map_batches(
+                    partial(
+                        map_to_target_schema,
+                        split=split_renaming.get(split, split),
+                        corpus="omnilang"
+                    ),
+                    batch_size=100,
+                    batch_format="pyarrow"
+                )
+                ray_ds_stream_.write_parquet(
+                    output_dir,
+                    partition_cols=["corpus", "split", "language"],
+                    min_rows_per_file=10_000,
+                    row_group_size=100,
+                )
     @staticmethod
     def _compute_distribution_stats_internal(
         parquet_dataset_root: str, output_path: str
@@ -327,7 +425,7 @@ class DataPrepCLI:
         self._ingest_mls_internal(output_dir)
         print("MLS ingestion completed")
 
-    def ingest_fleurs(self, output_dir: str, lang_subset:list[str] | None = None):
+    def ingest_fleurs(self, output_dir: str, lang_subset:list[str] | None = None, is_lower:bool = True):
         """Ingest FLEURS datasets.
 
         Args:
@@ -336,10 +434,10 @@ class DataPrepCLI:
 
         """
         print(f"Starting FLEURS ingestion to: {output_dir}")
-        self._ingest_fleurs_internal(output_dir, lang_subset)
+        self._ingest_fleurs_internal(output_dir, lang_subset, is_lower)
         print("FLEURS ingestion completed")
 
-    def ingest_custom_corpus(self, output_dir: str, lang_subset: list[str] | None = None):
+    def ingest_mozilla(self, output_dir: str, lang_subset: list[str] | None = None, is_lower: bool = True):
         """Ingest Mozilla datasets
 
         Args:
@@ -348,8 +446,19 @@ class DataPrepCLI:
         """
 
         print(f"Starting Mozilla Ingesstion to: {output_dir}")
-        self._ingest_custom_corpus_internal(output_dir, lang_subset)
+        self._ingest_mozilla_internal(output_dir, lang_subset, is_lower)
         print("Mozilla ingestion completed")
+
+    def ingest_omnilang(self, output_dir: str, lang_subset: list[str] | None = None, is_lower: bool = True):
+        """Ingest OmniLang
+
+        Args:
+            output_dir: Output directory path for processed Parquet files
+            lang_subset: The language subset to process
+        """
+        print(f"Starting Omnilang ingestion process: {output_dir}")
+        self._ingest_omnilang_internal(output_dir, lang_subset, is_lower)
+        print("Omnilang ingestion completed")
       
     def compute_stats(self, parquet_dataset_root: str, output_path: str):
         """Compute distribution statistics from processed datasets.
@@ -410,7 +519,7 @@ class DataPrepCLI:
             parquet_dataset_root, lang_subset=self.FLEURS_SHORT_SUBSET
         )
 
-        self._ingest_custom_corpus_internal(
+        self._ingest_mozilla_internal(
             parquet_dataset_root, lang_subset=self.MOZILLA_LAG_SUBSET
         )
 
@@ -464,11 +573,18 @@ class DataPrepCLI:
         self.test_dataset(parquet_dataset_root, stats_path=stats_path)
         return parquet_dataset_root, stats_path
 
-    def run_set(self, output_dir: str, lang_set_id: str, name: str ="all_asr", version: str = "0"):
+    def run_set(self, output_dir: str, lang_set_id: str, name: str ="all_asr", version: str = "0", is_lower: bool =True):
         # CS: Moz, P: F/V
         set_mapping = {
             "ind-jav" : {
                 "FLEURS" : ("id_id", "jv_id"),
+                "MOZILLA" : ("ind-jav")
+            },
+            "spa-nhi" : {
+                "FLEURS" : ("es-419"),
+                "MOZILLA" : ("ncx_Latn", "nhi_Latn", "nlv_Latn", "spa-nhi"),
+                "OMNI-LANG" : ("nhg_Latn", "nhn_Latn", "nhq_latn")
+
             }
         }
 
@@ -476,9 +592,12 @@ class DataPrepCLI:
         if not lang_set:
             raise ValueError("No LAng set found")
             
-        fleurs_lang_subset = lang_set.get("FLEURS")
-        custom_lang_subset = [lang_set_id]
+        fleurs_lang_subset = lang_set.get("FLEURS", [])
+        mozilla_lang_subset = lang_set.get("MOZILLA", [])
+        omni_lang_subset = lang_set.get("OMNI-LANG",[])
         
+        #norm omni
+        #below
         
         print("🚀 Starting FULL data preparation pipeline")
         print(f"📁 Output directory: {output_dir}")
@@ -487,18 +606,22 @@ class DataPrepCLI:
             f"🌍 Processing {len(fleurs_lang_subset)} languages from FLEURS: {fleurs_lang_subset}"
         )
         print(
-            f"📚 Processing {len(custom_lang_subset)} languages from Custom: {custom_lang_subset}"
+            f"📚 Processing {len(mozilla_lang_subset)} languages from Mozilla: {mozilla_lang_subset}"
         )
 
         parquet_dataset_root = str(Path(output_dir) / f"{name}/version={version}/")
+        if len(mozilla_lang_subset) >0:
+            print("🔄 Ingesting Custom datasets...")
+            self.ingest_mozilla(parquet_dataset_root,mozilla_lang_subset, is_lower)
 
-        print("🔄 Ingesting Custom datasets...")
-        self.ingest_custom_corpus(parquet_dataset_root,custom_lang_subset)
+        if len(fleurs_lang_subset) > 0:
+            print("🔄 Ingesting FLEURS datasets...")
+            self.ingest_fleurs(parquet_dataset_root,fleurs_lang_subset, is_lower)
 
-        print("🔄 Ingesting FLEURS datasets...")
-        self.ingest_fleurs(parquet_dataset_root,fleurs_lang_subset)
-
-        
+        if len(omni_lang_subset) > 0:
+            print("🔄 Ingesting OmniASR datasets...")
+            self.ingest_fleurs(parquet_dataset_root,omni_lang_subset, is_lower)
+            
         # Compute statistics
         stats_path = Path(output_dir) / f"{name}/language_distribution_{version}.tsv"
         self.compute_stats(parquet_dataset_root, str(stats_path))
