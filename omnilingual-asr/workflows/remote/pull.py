@@ -42,7 +42,6 @@ class PullCli:
             repo_id=repo_id,
             repo_type="model",
             local_dir=str(artifacts_dir),
-            allow_patterns=["models/*"],
             revision=revision,
         )
         print(f"Pulled models -> {artifacts_dir}/models")
