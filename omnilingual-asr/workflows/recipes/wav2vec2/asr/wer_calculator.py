@@ -175,22 +175,42 @@ class WerCalculator:
                 "The generator output cannot be written. See the nested exception for details."
             ) from ex
 
+    # def _generate_hypotheses(
+    #     self, logits: Tensor, logit_layout: BatchLayout
+    # ) -> tuple[Tensor, BatchLayout]:
+    #     hyp_seqs = []
+
+    #     # Get the greedy token (i.e. unit) output of the model.
+    #     for logits, logits_len in zip(logits, logit_layout.seq_lens):
+    #         # (S)
+    #         hyp_seq = logits[:logits_len].argmax(-1).unique_consecutive()
+
+    #         # (S - blank)
+    #         hyp_seq = hyp_seq[hyp_seq != self._blank_label]
+
+    #         hyp_seqs.append(hyp_seq)
+
+    #     # (N, S), (N, S)
+    #     return pad_seqs(hyp_seqs, pad_value=self._pad_idx)
+
     def _generate_hypotheses(
         self, logits: Tensor, logit_layout: BatchLayout
     ) -> tuple[Tensor, BatchLayout]:
         hyp_seqs = []
 
-        # Get the greedy token (i.e. unit) output of the model.
         for logits, logits_len in zip(logits, logit_layout.seq_lens):
-            # (S)
             hyp_seq = logits[:logits_len].argmax(-1).unique_consecutive()
-
-            # (S - blank)
             hyp_seq = hyp_seq[hyp_seq != self._blank_label]
+
+            if hyp_seq.numel() == 0:
+                # Greedy CTC decode collapsed to all-blank for this utterance.
+                # Substitute a single pad token so BatchLayout doesn't reject a
+                # zero-length sequence; this scores as fully wrong against the
+                # reference, which is the correct WER outcome here anyway.
+                hyp_seq = hyp_seq.new_full((1,), self._pad_idx)
 
             hyp_seqs.append(hyp_seq)
 
-        # (N, S), (N, S)
         return pad_seqs(hyp_seqs, pad_value=self._pad_idx)
 
     def process_metric_values(self, values: MutableMapping[str, object]) -> None:
