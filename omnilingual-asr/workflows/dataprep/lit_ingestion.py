@@ -13,6 +13,7 @@ import pyarrow.dataset as pa_ds
 import ray
 
 from audio_tools import AudioTableProcessor, map_to_target_schema
+from audio_features import AudioFeatureProcessor
 from datasets import load_dataset, Audio, Value
 from text_tools import normalize_text_mozilla, normalize_nahuatl_word
 
@@ -96,7 +97,6 @@ class MozillaTextProcessor:
             "language", pa.array(language_values, type=pa.string())
         )
         return batch
-
 
 class OmniTextProcessor:
     """
@@ -258,6 +258,17 @@ class DataPrepCLI:
                     batch_format="pyarrow",
                     concurrency=num_cpus,
                 )
+
+                ray_ds_stream_ = ray_ds_stream_.map_batches(
+                   AudioFeatureProcessor,
+                    fn_constructor_kwargs={
+                        "audio_column": "audio",
+                    },
+                    batch_size=100,
+                    batch_format="pyarrow",
+                    concurrency=num_cpus,
+                )
+
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
                     partial(
                         map_to_target_schema,
@@ -322,6 +333,15 @@ class DataPrepCLI:
                 )
 
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
+                    AudioFeatureProcessor,
+                    fn_constructor_kwargs={
+                        "audio_column": "audio",
+                    },
+                    batch_size=100,
+                    batch_format="pyarrow",
+                    concurrency=num_cpus,
+                )
+                ray_ds_stream_ = ray_ds_stream_.map_batches(
                     partial(
                         map_to_target_schema,
                         split=split_renaming.get(split, split),
@@ -379,6 +399,15 @@ class DataPrepCLI:
                 )
 
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
+                    AudioFeatureProcessor,
+                    fn_constructor_kwargs={
+                        "audio_column": "audio",
+                    },
+                    batch_size=100,
+                    batch_format="pyarrow",
+                    concurrency=num_cpus,
+                )
+                ray_ds_stream_ = ray_ds_stream_.map_batches(
                     partial(
                         map_to_target_schema,
                         split=split_renaming.get(split, split),
@@ -393,6 +422,8 @@ class DataPrepCLI:
                     min_rows_per_file=10_000,
                     row_group_size=100,
                 )
+
+
     @staticmethod
     def _compute_distribution_stats_internal(
         parquet_dataset_root: str, output_path: str
@@ -407,6 +438,68 @@ class DataPrepCLI:
             (pl.col("audio_size").sum() / 3600 / 16_000).alias("hours")
         )
         stats.write_csv(output_path, separator="\t")
+        return output_path
+
+
+    @staticmethod
+    def _compute_extended_stats_internal(
+        parquet_dataset_root: str,
+        output_path: str,
+    ):
+        columns = [
+            "corpus",
+            "language",
+            "split",
+            "snr_db",
+            "noise_level_db",
+            "speech_level_db",
+            "speech_ratio",
+            "duration_sec",
+            "sample_rate",
+            "channels",
+            "spectral_bandwidth_hz",
+        ]
+
+        table = pa_ds.dataset(
+            parquet_dataset_root,
+            partitioning="hive",
+            exclude_invalid_files=True,
+        ).to_table(columns=columns)
+
+        df = pl.from_arrow(table.combine_chunks())
+
+        features = [
+            "snr_db",
+            "noise_level_db",
+            "speech_level_db",
+            "speech_ratio",
+            "duration_sec",
+            "sample_rate",
+            "channels",
+            "spectral_bandwidth_hz",
+        ]
+
+        aggregations = [
+            pl.len().alias("count"),
+        ]
+
+        for feature in features:
+            aggregations.extend([
+                pl.col(feature).mean().alias(f"{feature}_mean"),
+                pl.col(feature).median().alias(f"{feature}_median"),
+                pl.col(feature).std().alias(f"{feature}_std"),
+                pl.col(feature).quantile(0.10).alias(f"{feature}_p10"),
+                pl.col(feature).quantile(0.90).alias(f"{feature}_p90"),
+            ])
+
+        stats = (
+            df.group_by(["corpus", "language", "split"])
+            .agg(aggregations)
+            .sort(["corpus", "language", "split"])
+        )
+
+        stats.write_csv(output_path, separator="\t")
+
         return output_path
 
     def ingest_mls(self, output_dir: str):
@@ -466,6 +559,22 @@ class DataPrepCLI:
             parquet_dataset_root, output_path
         )
         print(f"Statistics saved to: {result_path}")
+        return result_path
+
+    def compute_stats_extended(
+        self,
+        parquet_dataset_root: str,
+        output_path: str,
+    ):
+        print(f"Computing extended stats for: {parquet_dataset_root}")
+
+        result_path = self._compute_extended_stats_internal(
+            parquet_dataset_root,
+            output_path,
+        )
+
+        print(f"Extended statistics saved to: {result_path}")
+
         return result_path
 
     def test_dataset(self, dataset_path: str, **kwargs):
