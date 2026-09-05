@@ -615,7 +615,7 @@ class DataPrepCLI:
         parquet_dataset_root = str(Path(output_dir) / f"{name}/version={version}/")
         if len(omni_lang_subset) > 0:
             print("🔄 Ingesting OmniASR datasets...")
-            self.ingest_fleurs(parquet_dataset_root,omni_lang_subset, is_lower)
+            self.ingest_omnilang(parquet_dataset_root,omni_lang_subset, is_lower)
 
         if len(mozilla_lang_subset) >0:
             print("🔄 Ingesting Custom datasets...")
