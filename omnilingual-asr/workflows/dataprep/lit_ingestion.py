@@ -355,7 +355,7 @@ class DataPrepCLI:
                     lang,
                     split=split,
                     streaming=True,
-                    data_files={split : f"{lang/split}-*.parquet"}
+                    data_files={split : f"{lang}/{split}-*.parquet"}
                 )
                 omnilang_hf = omnilang_hf.shuffle(seed=123, buffer_size=10_000)
                 omnilang_hf = omnilang_hf.cast_column("speaker_id", Value("string"))
