@@ -130,7 +130,7 @@ class OmniTextProcessor:
 class DataPrepCLI:
     """Command-line interface for ASR data preparation tasks."""
 
-    FLEURS_LAG_SUBSET = ["id_id", "jv_id", "es-419"]
+    FLEURS_LAG_SUBSET = ["id_id", "jv_id", "es_419"]
     MOZILLA_LAG_SUBSET = ["ind-jav", "spa-nhi","ncx_Latn", "nhi_Latn", "nlv_Latn"]
     OMNI_LANG_SUBSET = ["nhg_Latn", "nhn_Latn", "nhq_latn"]
 
