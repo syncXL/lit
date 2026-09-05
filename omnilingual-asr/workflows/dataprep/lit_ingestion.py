@@ -125,12 +125,6 @@ class OmniTextProcessor:
         batch = batch.drop(["text"]).append_column(
             "transcription", pa.array(processed_transcriptions, type=pa.string())
         )
-
-
-        language_values = [self.lang_mapping.get(self.lang, self.lang)] * len(batch)
-        batch = batch.append_column(
-            "language", pa.array(language_values, type=pa.string())
-        )
         return batch
 
 class DataPrepCLI:
