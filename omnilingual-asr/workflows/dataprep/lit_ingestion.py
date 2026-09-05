@@ -131,7 +131,7 @@ class DataPrepCLI:
     """Command-line interface for ASR data preparation tasks."""
 
     FLEURS_LAG_SUBSET = ["id_id", "jv_id", "es_419"]
-    MOZILLA_LAG_SUBSET = ["ind-jav", "spa-nhi","ncx_Latn", "nhi_Latn", "nlv_Latn"]
+    MOZILLA_LAG_SUBSET = ["ind-jav", "spa-nhi","ncx_Latn", "nhi_Latn", "nlv_Latn", "ind_eng"]
     OMNI_LANG_SUBSET = ["nhg_Latn", "nhn_Latn", "nhq_latn"]
 
     # Short subset for quick testing (only 2 languages from FLEURS)
@@ -572,7 +572,7 @@ class DataPrepCLI:
         set_mapping = {
             "ind-jav" : {
                 "FLEURS" : ("id_id", "jv_id"),
-                "MOZILLA" : ("ind-jav",)
+                "MOZILLA" : ("ind-jav", "ind_eng")
             },
             "spa-nhi" : {
                 "FLEURS" : ("es_419",),
