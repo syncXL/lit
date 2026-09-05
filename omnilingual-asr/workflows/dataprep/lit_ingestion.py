@@ -262,7 +262,7 @@ class DataPrepCLI:
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
                    AudioFeatureProcessor,
                     fn_constructor_kwargs={
-                        "audio_column": "audio",
+                        "audio_column": "audio.bytes",
                     },
                     batch_size=100,
                     batch_format="pyarrow",
@@ -335,7 +335,7 @@ class DataPrepCLI:
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
                     AudioFeatureProcessor,
                     fn_constructor_kwargs={
-                        "audio_column": "audio",
+                        "audio_column": "audio.bytes",
                     },
                     batch_size=100,
                     batch_format="pyarrow",
@@ -401,7 +401,7 @@ class DataPrepCLI:
                 ray_ds_stream_ = ray_ds_stream_.map_batches(
                     AudioFeatureProcessor,
                     fn_constructor_kwargs={
-                        "audio_column": "audio",
+                        "audio_column": "audio.bytes",
                     },
                     batch_size=100,
                     batch_format="pyarrow",
