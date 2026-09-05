@@ -24,21 +24,45 @@ from fairseq2.data.data_pipeline import FileMapper, read_sequence
 from numpy.typing import NDArray
 
 
-def map_to_target_schema(batch: pa.Table, split: str, corpus: str) -> pa.Table:
+def map_to_target_schema(
+    batch: pa.Table,
+    split: str,
+    corpus: str,
+) -> pa.Table:
     """
-    Maps a batch of data to the target schema by flattening, renaming columns,
-    adding audio bytes, split, and corpus columns, and selecting the final set of columns.
+    Maps a processed batch to the unified target schema.
     """
+
     batch = batch.rename_columns({"transcription": "text"})
+
     batch = batch.append_column(
-        "split", pa.array([split] * len(batch), type=pa.string())
+        "split",
+        pa.array([split] * len(batch), type=pa.string()),
     )
+
     batch = batch.append_column(
-        "corpus", pa.array([corpus] * len(batch), type=pa.string())
+        "corpus",
+        pa.array([corpus] * len(batch), type=pa.string()),
     )
-    return batch.select(
-        ["text", "audio_bytes", "language", "split", "corpus", "audio_size"]
-    )
+
+    return batch.select([
+        "text",
+        "audio_bytes",
+        "language",
+        "split",
+        "corpus",
+        "audio_size",
+
+        # Audio quality/features
+        "snr",
+        "noise_level",
+        "speech_level",
+        "speech_ratio",
+        "duration",
+        "sample_rate",
+        "channels",
+        "spectral_bandwidth",
+    ])
 
 
 class AudioTableProcessor:
