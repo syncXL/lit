@@ -222,7 +222,7 @@ class DataPrepCLI:
             lang_subset if lang_subset is not None else self.FLEURS_LAG_SUBSET
         )
 
-        split_renaming = {"validation": "train", "test" : "train"}
+        split_renaming = {"validation": "dev", "test" : "test"}
 
         for lang in langs_to_process:
             for split in ["test", "validation", "train"]:
@@ -280,7 +280,7 @@ class DataPrepCLI:
             lang_subset if lang_subset is not None else self.MOZILLA_LAG_SUBSET
         )
 
-        split_renaming = {"val" : "train", "test" : "validation"}
+        split_renaming = {"val" : "test"}
         for lang in langs_to_process:
             for split in ["test", "dev", "val", "train"]:
                 try:
@@ -341,7 +341,7 @@ class DataPrepCLI:
         langs_to_process = (
             lang_subset if lang_subset is not None else self.OMNI_LANG_SUBSET
         )
-        split_renaming = {"dev" : "train", "test" : "train"}
+        split_renaming = {"dev" : "dev", "test" : "test"}
         for lang in langs_to_process:
             for split in ["test", "dev", "train" ]:
                 omnilang_hf = load_dataset(
@@ -572,7 +572,7 @@ class DataPrepCLI:
         set_mapping = {
             "ind-jav" : {
                 "FLEURS" : ("id_id", "jv_id"),
-                "MOZILLA" : ("ind-jav")
+                "MOZILLA" : ("ind-jav",)
             },
             "spa-nhi" : {
                 "FLEURS" : ("es_419",),
