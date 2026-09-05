@@ -577,7 +577,7 @@ class DataPrepCLI:
             "spa-nhi" : {
                 "FLEURS" : ("es-419"),
                 "MOZILLA" : ("ncx_Latn", "nhi_Latn", "nlv_Latn", "spa-nhi"),
-                "OMNI-LANG" : ("nhg_Latn", "nhn_Latn", "nhq_latn")
+                "OMNI-LANG" : ("nhg_Latn", "nhn_Latn", "nhq_Latn")
 
             }
         }
