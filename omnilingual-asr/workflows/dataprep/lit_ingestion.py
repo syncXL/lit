@@ -288,7 +288,7 @@ class DataPrepCLI:
                         "nolimitsxl/lost-in-transcription",
                         lang,
                         split=split,
-                        streaming=True,
+                        # streaming=True,
                         data_files={split: f"{lang}/{split}-*.parquet"}
                     )
                 except (FileNotFoundError, ValueError) as e:
@@ -348,7 +348,7 @@ class DataPrepCLI:
                     "nolimitsxl/omnilingual-asr-prepared",
                     lang,
                     split=split,
-                    streaming=True,
+                    # streaming=True,
                     data_files={split : f"{lang}/{split}-*.parquet"}
                 )
                 omnilang_hf = omnilang_hf.shuffle(seed=123, buffer_size=10_000)
