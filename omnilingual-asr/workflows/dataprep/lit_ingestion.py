@@ -608,8 +608,15 @@ class DataPrepCLI:
         print(
             f"📚 Processing {len(mozilla_lang_subset)} languages from Mozilla: {mozilla_lang_subset}"
         )
+        print(
+            f"📚 Processing {len(omni_lang_subset)} languages from OmniASR: {omni_lang_subset}"
+        )
 
         parquet_dataset_root = str(Path(output_dir) / f"{name}/version={version}/")
+        if len(omni_lang_subset) > 0:
+            print("🔄 Ingesting OmniASR datasets...")
+            self.ingest_fleurs(parquet_dataset_root,omni_lang_subset, is_lower)
+
         if len(mozilla_lang_subset) >0:
             print("🔄 Ingesting Custom datasets...")
             self.ingest_mozilla(parquet_dataset_root,mozilla_lang_subset, is_lower)
@@ -618,9 +625,6 @@ class DataPrepCLI:
             print("🔄 Ingesting FLEURS datasets...")
             self.ingest_fleurs(parquet_dataset_root,fleurs_lang_subset, is_lower)
 
-        if len(omni_lang_subset) > 0:
-            print("🔄 Ingesting OmniASR datasets...")
-            self.ingest_fleurs(parquet_dataset_root,omni_lang_subset, is_lower)
             
         # Compute statistics
         stats_path = Path(output_dir) / f"{name}/language_distribution_{version}.tsv"
