@@ -49,7 +49,7 @@ class FleursTextProcessor:
 
         for text in transcriptions:
             # Normalize text
-            processed_text = normalize_text_mozilla(text, is_lower=is_lower)
+            processed_text = normalize_text_mozilla(text, is_lower=self.is_lower)
             processed_transcriptions.append(processed_text)
 
         # Drop original transcription column and add the processed one
@@ -575,7 +575,7 @@ class DataPrepCLI:
                 "MOZILLA" : ("ind-jav")
             },
             "spa-nhi" : {
-                "FLEURS" : ("es-419"),
+                "FLEURS" : ("es_419"),
                 "MOZILLA" : ("ncx_Latn", "nhi_Latn", "nlv_Latn", "spa-nhi"),
                 "OMNI-LANG" : ("nhg_Latn", "nhn_Latn", "nhq_Latn")
 
