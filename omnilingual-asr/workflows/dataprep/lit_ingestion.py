@@ -351,7 +351,7 @@ class DataPrepCLI:
         for lang in langs_to_process:
             for split in ["test", "dev", "train" ]:
                 omnilang_hf = load_dataset(
-                    "nolimitsxl/omnilingual-asr-nahuatl-prepared",
+                    "nolimitsxl/omnilingual-asr-prepared",
                     lang,
                     split=split,
                     streaming=True,
