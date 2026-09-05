@@ -7,5 +7,5 @@
 name: indonesian-javanese-set
 dataset_family: mixture_parquet_asr_dataset
 dataset_config:
-  data: /kaggle/working/data/all_asr/version=0
+  data: /kaggle/working/data/ind_jav/version=0
 tokenizer_ref: omniASR_tokenizer_written_v2
