@@ -113,7 +113,7 @@ class OmniTextProcessor:
         self.is_lower = is_lower
     
     def __call__(self, batch: pa.Table, ) -> pa.Table:
-        transcription = batch["transcript"].to_pylist()
+        transcription = batch["text"].to_pylist()
         processed_transcriptions = []
 
         for text in transcription:
