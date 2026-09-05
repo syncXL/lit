@@ -3,5 +3,5 @@
 name: lit-ctc300m-ind-jav
 model_family: wav2vec2_asr
 model_arch: 300m_v2
-checkpoint: https://huggingface.co/nolimitsxl/lost-in-transcription-artifacts/resolve/main/lit-ctc300m-ind-jav/checkpoints/step_3000/model/pp_00/tp_00/sdp_00.pt
+checkpoint: https://huggingface.co/nolimitsxl/lost-in-transcription-artifacts/resolve/main/lit-ctc300m-ind-jav/checkpoints/step_3500/model/pp_00/tp_00/sdp_00.pt
 tokenizer_ref: omniASR_tokenizer_written_v2
