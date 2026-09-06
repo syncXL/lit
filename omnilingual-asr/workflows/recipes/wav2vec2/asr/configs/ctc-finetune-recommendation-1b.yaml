@@ -17,6 +17,8 @@ dataset:
     dataset_summary_path: "/kaggle/working/data/ind_jav/language_distribution_1.tsv"
     beta_corpus: 0.5
     beta_language: 0.5
+    fragment_streaming:
+      partition_filters: 'pc.or_(pc.field("split") != "dev", pc.is_in(pc.field("corpus"), pa.array(["mozilla"])))'
     fragment_loading:
       cache: True
   asr_task_config:
