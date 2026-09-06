@@ -35,7 +35,7 @@ optimizer:
 
 trainer:
   activation_checkpointing:
-    mode: full 
+    mode: layerwise
   freeze_encoder_for_n_steps: 0
   data_parallelism: fsdp        # ← add this line
   mixed_precision:
