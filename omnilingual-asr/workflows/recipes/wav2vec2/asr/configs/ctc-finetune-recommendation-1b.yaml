@@ -51,4 +51,4 @@ regime:
   keep_last_n_checkpoints: 2
   keep_best_n_checkpoints: 1
 common:
-  sweep_format: "lit-ctc-1b-ind-jav"
+  sweep_format: "lit-ctc1b-ind-jav"
