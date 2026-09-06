@@ -8,13 +8,13 @@ model:
   name: "omniASR_CTC_1B_v2" # omniASR_CTC_1B, omniASR_CTC_3B
 
 dataset:
-  name: "indonesian-javanese-set-v2"
+  name: "indonesian-javanese-set"
   train_split: "train"
   valid_split: "dev"
   storage_mode: "MIXTURE_PARQUET"
   task_mode: "ASR"
   mixture_parquet_storage_config:
-    dataset_summary_path: "/kaggle/working/data/ind_jav/language_distribution_1.tsv"
+    dataset_summary_path: "/kaggle/working/data/ind_jav/language_distribution_0.tsv"
     beta_corpus: 0.5
     beta_language: 0.5
     fragment_loading:
