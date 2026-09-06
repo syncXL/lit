@@ -35,10 +35,12 @@ optimizer:
 
 trainer:
   freeze_encoder_for_n_steps: 0
+  data_parallelism: fsdp        # ← add this line
   mixed_precision:
     dtype: "torch.bfloat16"
   grad_accumulation:
-    num_batches: 12 # tune this parameter if you are getting OOM
+    num_batches: 12
+
 regime:
   num_steps: 5000
   validate_every_n_steps: 500
