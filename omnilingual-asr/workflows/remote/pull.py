@@ -11,7 +11,7 @@ class PullCli:
     DIR = "."
 
     def pull_dataset(self, ds_repo_id: str | None = None, ds_dir: str | None = None,
-                      revision: str | None = None):
+                      revision: str | None = None, allow_patterns: str | None = None):
         ds_repo_id = ds_repo_id or f"{self.HF_REPO_ID}/{self.DATASETS_REPO}"
         ds_dir = Path(ds_dir) if ds_dir else Path(self.DIR) / "data"
         snapshot_download(
@@ -19,6 +19,7 @@ class PullCli:
             repo_type="dataset",
             local_dir=str(ds_dir),
             revision=revision,
+            allow_patterns=allow_patterns
         )
         print(f"Pulled dataset -> {ds_dir}")
 
