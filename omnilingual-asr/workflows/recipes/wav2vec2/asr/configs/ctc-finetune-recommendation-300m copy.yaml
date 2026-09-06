@@ -8,13 +8,13 @@ model:
   name: "omniASR_CTC_300M_v2" # omniASR_CTC_1B, omniASR_CTC_3B
 
 dataset:
-  name: "indonesian-javanese-set"
+  name: "indonesian-javanese-set-v2"
   train_split: "train"
   valid_split: "dev"
   storage_mode: "MIXTURE_PARQUET"
   task_mode: "ASR"
   mixture_parquet_storage_config:
-    dataset_summary_path: "/kaggle/working/data/ind_jav/language_distribution_0.tsv"
+    dataset_summary_path: "/kaggle/working/data/ind_jav/language_distribution_1.tsv"
     beta_corpus: 0.5
     beta_language: 0.5
     fragment_loading:
@@ -35,18 +35,19 @@ optimizer:
 
 trainer:
   freeze_encoder_for_n_steps: 0
+  data_parallelism: fsdp        # ← add this line
   mixed_precision:
     dtype: "torch.bfloat16"
   grad_accumulation:
-    num_batches: 16 # tune this parameter if you are getting OOM
+    num_batches: 6 # tune this parameter if you are getting OOM
 regime:
-  num_steps: 5000
-  validate_every_n_steps: 500
-  validate_after_n_steps: 500
-  checkpoint_every_n_steps: 500
-  checkpoint_after_n_steps: 500
-  publish_metrics_every_n_steps: 500
-  publish_metrics_after_n_steps: 500
+  num_steps: 10
+  validate_every_n_steps: 5
+  validate_after_n_steps: 5
+  checkpoint_every_n_steps: 5
+  checkpoint_after_n_steps: 5
+  publish_metrics_every_n_steps: 5
+  publish_metrics_after_n_steps: 5
   # export_hugging_face: True
   keep_last_n_checkpoints: 3
   keep_best_n_checkpoints: 1
