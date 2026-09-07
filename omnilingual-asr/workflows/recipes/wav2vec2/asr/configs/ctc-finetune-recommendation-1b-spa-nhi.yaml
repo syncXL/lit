@@ -1,0 +1,59 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+model:
+  name: "omniASR_CTC_1B_v2" # omniASR_CTC_1B, omniASR_CTC_3B
+
+dataset:
+  name: "spanish-nahuatl"
+  train_split: "train"
+  valid_split: "dev"
+  storage_mode: "MIXTURE_PARQUET"
+  task_mode: "ASR"
+  mixture_parquet_storage_config:
+    dataset_summary_path: "/kaggle/working/data/spa_nhi/language_distribution_0.tsv"
+    beta_corpus: 0.5
+    beta_language: 0.5
+    fragment_streaming:
+      partition_filters: '(pc.field("split") != "dev") | pc.is_in(pc.field("corpus"), pa.array(["mozilla"]))'
+    fragment_loading:
+      cache: True
+  asr_task_config:
+    max_audio_len: 640_000
+    max_num_elements: 640_000
+    batch_shuffle_window: 1
+    normalize_audio: true
+    example_shuffle_window: 10_000 # full-batch shuffling by default
+
+tokenizer:
+  name: "omniASR_tokenizer_written_v2"
+
+optimizer:
+  config:
+    lr: 1e-05
+
+trainer:
+  activation_checkpointing:
+    mode: layerwise
+  freeze_encoder_for_n_steps: 0
+  data_parallelism: fsdp        # ← add this line
+  mixed_precision:
+    dtype: "torch.bfloat16"
+  grad_accumulation:
+    num_batches: 12
+
+regime:
+  num_steps: 10
+  validate_after_n_steps: 5
+  validate_every_n_steps: 5
+  checkpoint_after_n_steps: 5
+  checkpoint_every_n_steps: 5
+  publish_metrics_after_n_steps: 1
+  publish_metrics_every_n_steps: 1
+  keep_last_n_checkpoints: 1
+  keep_best_n_checkpoints: 1
+common:
+  sweep_format: "lit-ctc1b-spa-spa_nhi"
