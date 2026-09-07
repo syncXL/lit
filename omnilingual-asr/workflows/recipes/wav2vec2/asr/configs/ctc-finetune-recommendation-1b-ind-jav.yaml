@@ -47,6 +47,7 @@ trainer:
 
 regime:
   num_steps: 2500
+  save_model_only: true
   validate_after_n_steps: 400
   validate_every_n_steps: 400
   checkpoint_after_n_steps: 400
