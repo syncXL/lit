@@ -56,4 +56,4 @@ regime:
   keep_last_n_checkpoints: 1
   keep_best_n_checkpoints: 1
 common:
-  sweep_format: "lit-ctc1b-spa-spa_nhi"
+  sweep_format: "lit-ctc1b-spa-nhi"
